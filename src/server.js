@@ -1,25 +1,37 @@
-const { ApolloServer } = require("apollo-server-hapi");
+const { graphiqlHapi, graphqlHapi } = require("apollo-server-hapi");
+const { makeExecutableSchema } = require("graphql-tools");
 const Hapi = require("hapi");
 const { typeDefs } = require("./schema");
 const resolvers = require("./resolvers/resolvers");
-async function StartServer() {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers
+const startServer = async () => {
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+  const server = new Hapi.server({ port: 4000 });
+
+  await server.register({
+    plugin: graphqlHapi,
+    options: {
+      path: "/graphql",
+      graphqlOptions: {
+        schema
+      }
+    }
   });
 
-  const app = new Hapi.server({
-    port: 4000
+  await server.register({
+    plugin: graphiqlHapi,
+    options: {
+      path: "/graphiql",
+      graphiqlOptions: {
+        schema,
+        endpointURL: "/graphql"
+      },
+      route: {
+        cors: true
+      }
+    }
   });
-
-  await server.applyMiddleware({
-    app
-  });
-
-  await server.installSubscriptionHandlers(app.listener);
-
-  await app.start();
   console.log("server started on port 4000");
-}
+  server.start();
+};
 
-StartServer().catch(error => console.log(error));
+startServer();
