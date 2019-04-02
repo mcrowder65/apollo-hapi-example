@@ -60,27 +60,30 @@ const initialState = {
 const store = createStore(reducers, initialState);
 
 const updatePost = post => {
-  return {
+  store.dispatch({
     type: UPDATE_POST,
     post
-  };
+  });
 };
 const deletePost = id => {
-  return {
+  store.dispatch({
     type: DELETE_POST,
     id
-  };
+  });
 };
 
 const createPost = ({ title, body }) => {
-  return {
+  store.dispatch({
     type: CREATE_POST,
     post: { title, body, id: shortid.generate() }
-  };
+  });
+};
+
+const getPosts = () => {
+  return store.getState().posts;
 };
 module.exports = {
-  getState: store.getState,
-  dispatch: store.dispatch,
+  getPosts,
   updatePost,
   deletePost,
   createPost
